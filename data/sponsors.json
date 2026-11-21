@@ -1,0 +1,9 @@
+{
+  "_how_to": "Add paid local placements here, grouped by the campus Name exactly as in campus.json. category is one of: library, coffee, food, parking, atm, books, pharmacy, gym. ends (YYYY-MM-DD) hides the listing after that date. Every listing is labeled Sponsored.",
+  "_example": {
+    "Mississippi State University": [
+      { "name": "Example Coffee Co.", "category": "coffee", "offer": "10% off with student ID", "lat": 33.4611, "lng": -88.8120, "address": "123 Main St", "url": "https://example.com", "ends": "2027-05-31" }
+    ]
+  },
+  "campuses": {}
+}
