@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Campus Insights · GradWay</title>
+  <meta name="description" content="How students and visitors find their way around campus: routes, busy times, destinations and searches, from GradWay.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f6f4ef">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="vendor/maplibre-gl.css">
+  <link rel="stylesheet" href="css/insights.css">
+  <script>
+    try { if (JSON.parse(localStorage.getItem("gradway.insightsTheme")) === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="ins-top">
+    <div class="ins-brand">
+      <img src="icons/icon-192.png" alt="">
+      <div><span class="ins-product">GradWay</span><span class="ins-title">Campus Insights</span></div>
+    </div>
+    <div class="ins-top-actions">
+      <button class="ins-btn" id="theme" type="button" aria-label="Switch to dark theme"></button>
+      <button class="ins-btn" id="csv" type="button">Download CSV</button>
+      <button class="ins-btn primary" id="pdf" type="button">Save as PDF</button>
+    </div>
+  </header>
+
+  <main class="ins-main">
+    <section class="ins-hero">
+      <div class="ins-campus" id="campus-head"></div>
+      <p class="ins-sample" id="sample-note" hidden><b>Sample data.</b> These numbers show what a campus sees once GradWay Insights is on. They're realistic, not real.</p>
+      <p class="ins-error" id="error" role="alert" hidden></p>
+    </section>
+
+    <div class="ins-filters" role="group" aria-label="Filters">
+      <label class="ins-field"><span>Campus</span><select id="f-campus"></select></label>
+      <div class="ins-field"><span>Dates</span>
+        <div class="ins-seg" id="f-range">
+          <button type="button" data-range="7">Last 7 days</button>
+          <button type="button" data-range="30">Last 30 days</button>
+          <button type="button" data-range="term">This term</button>
+        </div>
+      </div>
+      <div class="ins-field"><span>People</span>
+        <div class="ins-seg" id="f-audience">
+          <button type="button" data-audience="all">Everyone</button>
+          <button type="button" data-audience="students">Students</button>
+          <button type="button" data-audience="visitors">Visitors</button>
+        </div>
+      </div>
+      <p class="ins-range-note" id="range-note"></p>
+    </div>
+
+    <div id="board" class="ins-board" aria-live="polite"></div>
+
+    <section class="ins-method">
+      <h2>How this data is collected</h2>
+      <ul>
+        <li><b>Anonymous by design.</b> GradWay doesn't use accounts, names, emails or student IDs, and doesn't store IP addresses.</li>
+        <li><b>No one's path is stored.</b> For a route, GradWay records the destination, distance, walk or drive, and the hour. Not where someone started, and not their location.</li>
+        <li><b>Places are grouped.</b> Map activity is counted on a grid of about 150 meters (500 feet).</li>
+        <li><b>Small groups are hidden.</b> Any destination, grid square or search seen fewer than 10 times in the selected dates is left out.</li>
+        <li><b>People are counted, not tracked.</b> Each device counts once a day, without an identifier that follows it from day to day.</li>
+      </ul>
+      <p class="muted">GradWay is independent and isn't affiliated with or endorsed by any university. Map © OpenStreetMap contributors, OpenFreeMap.</p>
+    </section>
+  </main>
+
+  <div class="ins-tip" id="tip" role="tooltip" hidden></div>
+
+  <script src="vendor/maplibre-gl.js" defer></script>
+  <script src="config.js"></script>
+  <script type="module" src="js/insights.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GradWay has moved</title>
+  <meta name="robots" content="noindex">
+  <!-- Set NEW_SITE to the Cloudflare Pages address (or custom domain), ending in a slash. -->
+  <script>
+    var NEW_SITE = "https://gradway.pages.dev/";
+    var path = location.pathname.replace(/^\/main\/?/, "");
+    location.replace(NEW_SITE + path + location.search + location.hash);
+  </script>
+  <style>body{font:16px system-ui,sans-serif;background:#0d1322;color:#f4efe6;display:grid;place-items:center;min-height:100vh;margin:0;padding:0 16px}a{color:#e8b75a}</style>
+</head>
+<body>
+  <p>GradWay has moved. <a id="go" href="https://gradway.pages.dev/">Continue to GradWay</a></p>
+  <script>document.getElementById("go").href = NEW_SITE + location.hash;</script>
+</body>
+</html>

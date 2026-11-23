@@ -1,0 +1,12 @@
+name = "gradway-insights"
+main = "insights-worker.js"
+compatibility_date = "2026-06-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gradway-insights"
+database_id = "PASTE-THE-ID-FROM-wrangler-d1-create"
+
+[vars]
+# Where the GradWay site lives (for browser access rules). Add your own domain if you use one.
+ALLOWED_ORIGINS = "https://gradwayapp.github.io,https://gradway.pages.dev,https://gradwayapp.com,https://www.gradwayapp.com"

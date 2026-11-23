@@ -1,0 +1,28 @@
+GradWay — Proprietary Software License
+
+Copyright (c) 2026 Oakland Software Co. All rights reserved.
+
+This software, including its source code, compiled and minified code, designs,
+graphics, text, data files and the selection and arrangement of campus data
+(together, the "Software"), is the confidential and proprietary property of
+Oakland Software Co. and is protected by copyright and other laws.
+
+No license is granted. Unless Oakland Software Co. has given you permission in
+a signed written agreement, you may not, in whole or in part:
+
+  - copy, reproduce, modify, translate or create derivative works of the Software;
+  - distribute, publish, sell, sublicense, host or mirror the Software;
+  - reverse engineer, decompile, disassemble or otherwise try to recover the
+    source code, structure or data of the Software, except to the extent the
+    law expressly permits it despite this restriction;
+  - use the Software, its code or its data to build, train or improve a
+    competing product, an AI or machine-learning model, or a dataset;
+  - remove or alter any copyright, trademark or other notice.
+
+Third-party components keep their own licenses, including MapLibre GL JS
+(vendor/MAPLIBRE-LICENSE.txt). Map data is (c) OpenStreetMap contributors,
+available under the Open Database License.
+
+"GradWay" and the GradWay logo are trademarks of Oakland Software Co.
+
+Questions and permission requests: oaklandsoftwareco@gmail.com

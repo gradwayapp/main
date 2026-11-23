@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Campus Alerts · GradWay</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d1322">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/advertise.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="ad-page admin-page">
+  <div class="glow" aria-hidden="true"></div>
+  <main class="ad-main admin-main">
+    <a class="ad-back" href="./">← GradWay</a>
+    <header>
+      <p class="eyebrow gold">GradWay team</p>
+      <h1 class="admin-title">Campus alerts</h1>
+      <p class="muted">Short messages at the top of a campus's dashboard. Up to three show at once, safety first. Publishing updates <code>data/alerts.json</code> on GitHub; the site shows the change within about two minutes.</p>
+    </header>
+
+    <section class="ad-step card glass" id="connect">
+      <h2><span class="import-num">1</span> Connect to GitHub</h2>
+      <div class="ad-two">
+        <label class="field"><span>Repository (owner/name)</span><input id="gh-repo" autocomplete="off" spellcheck="false"></label>
+        <label class="field"><span>Branch</span><input id="gh-branch" autocomplete="off" spellcheck="false"></label>
+      </div>
+      <label class="field"><span>GitHub token</span><input id="gh-token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></label>
+      <label class="admin-check"><input type="checkbox" id="gh-remember"> Remember the token on this device</label>
+      <details class="ad-details">
+        <summary>How to make a token (once)</summary>
+        <ol class="admin-steps">
+          <li>On GitHub, open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Settings → Developer settings → Fine-grained tokens → Generate new token</a>.</li>
+          <li>Name it "GradWay alerts" and pick an expiration (a year is fine).</li>
+          <li>Under <b>Repository access</b>, choose <b>Only select repositories</b> and pick the site's repository.</li>
+          <li>Under <b>Permissions → Repository permissions</b>, set <b>Contents</b> to <b>Read and write</b>.</li>
+          <li>Generate it, copy it and paste it above. It's sent only to GitHub.</li>
+        </ol>
+      </details>
+      <div class="admin-row">
+        <button class="btn btn-gold" id="gh-load" type="button">Load alerts</button>
+        <span class="muted small" id="gh-status" role="status"></span>
+      </div>
+    </section>
+
+    <section class="ad-step card glass" id="edit" hidden>
+      <h2><span class="import-num">2</span> Choose a campus</h2>
+      <label class="field"><span>Campus</span><select id="campus"></select></label>
+      <div class="admin-list" id="alert-list"></div>
+      <button class="btn btn-glass" id="new-alert" type="button">+ New alert</button>
+    </section>
+
+    <section class="ad-step card glass" id="form-card" hidden>
+      <h2><span class="import-num">3</span> <span id="form-title">New alert</span></h2>
+      <form id="alert-form" novalidate>
+        <label class="field"><span>Message <em class="ad-count" id="text-count">0/140</em></span>
+          <textarea id="a-text" maxlength="140" rows="3" required placeholder="Today is the last day to drop a class."></textarea></label>
+        <label class="field"><span>Type</span><select id="a-type"></select></label>
+        <div class="ad-two">
+          <label class="field"><span>Show from</span><input id="a-starts" type="datetime-local" required></label>
+          <label class="field"><span>Until</span><input id="a-ends" type="datetime-local" required></label>
+        </div>
+        <div class="admin-quick" aria-label="Quick times">
+          <button type="button" class="pill" data-quick="today">Rest of today</button>
+          <button type="button" class="pill" data-quick="tomorrow">All day tomorrow</button>
+          <button type="button" class="pill" data-quick="week">Next 7 days</button>
+        </div>
+        <div class="ad-two">
+          <label class="field"><span>Link <em>optional</em></span><input id="a-link" type="url" placeholder="https://"></label>
+          <label class="field"><span>Link text <em>optional</em></span><input id="a-link-label" maxlength="30" placeholder="Learn more"></label>
+        </div>
+        <p class="eyebrow">Preview</p>
+        <div class="alerts" id="preview"></div>
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+        <div class="admin-row">
+          <button class="btn btn-gold" type="submit" id="save-alert">Save and publish</button>
+          <button class="btn btn-glass" type="button" id="cancel-alert">Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <p class="muted small center" id="fallback" hidden>No token? Make your changes, then <button class="linkish" type="button" id="download">download alerts.json</button> and upload it to the repository's <code>data</code> folder on github.com.</p>
+  </main>
+  <script src="config.js"></script>
+  <script type="module" src="js/alerts-editor.js"></script>
+</body>
+</html>

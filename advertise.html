@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Advertise on GradWay · Reach students near campus</title>
+  <meta name="description" content="Put your business at the top of GradWay's campus searches. A sponsored listing near your college, set up in a few minutes.">
+  <meta name="theme-color" content="#0d1322">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="vendor/maplibre-gl.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/advertise.css">
+  <script>
+    // Light or dark before the page draws, so it never flashes the wrong theme.
+    try { if (JSON.parse(localStorage.getItem("gradway.theme")) === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}
+  </script>
+</head>
+<body class="ad-page">
+  <div class="glow" aria-hidden="true"></div>
+  <main class="ad-main">
+    <a class="ad-back" href="./">← Back to GradWay</a>
+
+    <header class="ad-hero">
+      <p class="eyebrow gold">For local businesses</p>
+      <h1>Be the first place students see near campus</h1>
+      <p class="ad-lede">GradWay helps students and visitors find their way around campus. When they search for coffee, food, a pharmacy or parking, your business can be at the top, with your offer.</p>
+      <ul class="ad-points">
+        <li><span class="ad-point-icon" data-icon="search"></span><span><b>Top of your category</b>First in searches like Coffee or Food near your campus, with a pin on the map.</span></li>
+        <li><span class="ad-point-icon" data-icon="tag"></span><span><b>In Local deals</b>Your offer on the campus dashboard, one tap from directions.</span></li>
+        <li><span class="ad-point-icon" data-icon="sparkle"></span><span><b>A monthly report</b>How many people saw your listing and tapped it.</span></li>
+        <li><span class="ad-point-icon" data-icon="shield"></span><span><b>Always labeled Sponsored</b>Students trust GradWay because ads never pretend to be anything else.</span></li>
+      </ul>
+    </header>
+
+    <div class="ad-layout">
+      <form class="ad-form" id="ad-form" novalidate>
+        <section class="ad-step card glass">
+          <h2><span class="import-num">1</span> Your campus</h2>
+          <label class="field"><span>College or university</span>
+            <select name="campus" id="ad-campus" required><option value="">Loading campuses…</option></select>
+          </label>
+        </section>
+
+        <section class="ad-step card glass">
+          <h2><span class="import-num">2</span> Your business</h2>
+          <label class="field"><span>Business name</span><input name="name" maxlength="40" autocomplete="organization" required placeholder="Cowbell Coffee"></label>
+          <label class="field"><span>Category</span>
+            <select name="category" required>
+              <option value="">Choose one</option>
+              <option value="coffee">Coffee</option>
+              <option value="food">Food</option>
+              <option value="books">Bookstore</option>
+              <option value="pharmacy">Pharmacy</option>
+              <option value="gym">Gym</option>
+              <option value="atm">ATM or bank</option>
+              <option value="parking">Parking</option>
+            </select>
+          </label>
+          <label class="field"><span>Your offer for students <em class="ad-count" data-count-for="offer">0/60</em></span><input name="offer" maxlength="60" required placeholder="10% off with student ID"></label>
+          <label class="field"><span>Street address</span><input name="address" autocomplete="street-address" required placeholder="123 Main St"></label>
+          <div class="ad-locate">
+            <button type="button" class="btn btn-glass" id="ad-find">Find it on the map</button>
+            <button type="button" class="btn btn-glass subtle-btn" id="ad-drop">Place the pin myself</button>
+          </div>
+          <div class="ad-matches" id="ad-matches" hidden></div>
+          <div class="ad-map-wrap" id="ad-map-wrap" hidden>
+            <div class="ad-map" id="ad-map" aria-label="Map: drag the pin onto your front door"></div>
+            <p class="muted small" id="ad-where">Drag the pin onto your front door.</p>
+          </div>
+          <div class="ad-two">
+            <label class="field"><span>Website <em>optional</em></span><input name="url" type="url" inputmode="url" placeholder="https://"></label>
+            <label class="field"><span>Phone <em>optional</em></span><input name="phone" type="tel" autocomplete="tel" placeholder="(662) 555-0100"></label>
+          </div>
+          <label class="field"><span>Hours <em>optional</em></span><input name="hours" placeholder="Mon–Fri 7am–9pm, Sat–Sun 8am–6pm"></label>
+        </section>
+
+        <section class="ad-step card glass">
+          <h2><span class="import-num">3</span> Your plan</h2>
+          <div class="ad-plans" id="ad-plans" role="radiogroup" aria-label="Plan"></div>
+          <p class="muted small">Listings go live after a quick review, usually within one business day. Cancel anytime; your listing ends at the end of the period you paid for.</p>
+        </section>
+
+        <section class="ad-step card glass">
+          <h2><span class="import-num">4</span> Your contact</h2>
+          <div class="ad-two">
+            <label class="field"><span>Your name</span><input name="contact" autocomplete="name" required></label>
+            <label class="field"><span>Email</span><input name="email" type="email" autocomplete="email" required placeholder="you@business.com"></label>
+          </div>
+          <p class="muted small">We use this only to set up your listing and send your monthly report.</p>
+          <p class="form-error" id="ad-error" role="alert" hidden></p>
+          <button class="btn btn-gold btn-block ad-submit" type="submit">Send my listing for review</button>
+        </section>
+      </form>
+
+      <aside class="ad-preview" aria-label="Preview">
+        <p class="eyebrow">Preview</p>
+        <div class="ad-phone" id="ad-preview"></div>
+        <p class="muted small center">How students see your listing in GradWay.</p>
+      </aside>
+    </div>
+
+    <section class="ad-done card glass" id="ad-done" hidden tabindex="-1"></section>
+
+    <footer class="footer ad-footer">
+      <p><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a> · <a href="./">GradWay</a></p>
+      <p>© <span id="ad-year"></span> Oakland Software Co. · GradWay is not affiliated with any university.</p>
+    </footer>
+  </main>
+
+  <script src="vendor/maplibre-gl.js" defer></script>
+  <script src="config.js"></script>
+  <script type="module" src="js/advertise.js"></script>
+</body>
+</html>
