@@ -89,8 +89,12 @@
   <dialog id="class-dialog" class="sheet-dialog" aria-labelledby="class-title">
     <form method="dialog" data-form="class" class="class-form" novalidate>
       <h2 id="class-title" class="dialog-title">Add a class</h2>
-      <label class="field"><span>Class</span><input name="name" placeholder="BIO 1134 or Biology" autocomplete="off" required></label>
-      <label class="field"><span>Building</span><input name="building" list="building-options" placeholder="Start typing a building" autocomplete="off"></label>
+      <label class="field"><span>Class</span><input name="name" placeholder="BIO 1134 or Biology" autocomplete="off" maxlength="60" required></label>
+      <label class="field"><span>Course title <em class="optional">optional</em></span><input name="title" placeholder="Biology I" autocomplete="off" maxlength="80"></label>
+      <div class="field-row">
+        <label class="field grow"><span>Building</span><input name="building" list="building-options" placeholder="Start typing a building" autocomplete="off"></label>
+        <label class="field room"><span>Room <em class="optional">optional</em></span><input name="room" placeholder="215" autocomplete="off" maxlength="20"></label>
+      </div>
       <datalist id="building-options"></datalist>
       <fieldset class="field">
         <legend>Days</legend>
@@ -106,7 +110,7 @@
       <p class="form-error" role="alert" hidden></p>
       <div class="dialog-actions">
         <button class="btn btn-glass" value="cancel" formnovalidate>Cancel</button>
-        <button class="btn btn-gold" value="save">Save class</button>
+        <button class="btn btn-gold" value="save" id="class-save">Save class</button>
       </div>
     </form>
   </dialog>

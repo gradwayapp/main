@@ -1,0 +1,182 @@
+{
+  "_how_to": "Deals of the Month. Update 'month' and 'checked' each month after re-checking every link. category: food, shopping, books, desserts, tools, entertainment. 'ends' (YYYY-MM-DD) hides a deal after that date. 'sponsored': true labels a paid placement. Campus-only deals go under 'campuses' keyed by the campus Name in campus.json; map-pinned paid placements stay in sponsors.json.",
+  "month": "December 2026",
+  "checked": "2026-11-23",
+  "deals": [
+    {
+      "id": "amazon-prime-student",
+      "brand": "Amazon Prime Student",
+      "category": "shopping",
+      "headline": "6 months free, then $7.49 a month",
+      "details": "Free fast shipping, Prime Video and member-only deals at about half the price of regular Prime.",
+      "how": "Verify with your school email or student ID.",
+      "url": "https://www.amazon.com/joinstudent",
+      "color": "#FF9900"
+    },
+    {
+      "id": "dashpass-students",
+      "brand": "DashPass for Students",
+      "category": "food",
+      "headline": "$4.99 a month or $48 a year",
+      "details": "Half the price of regular DashPass: $0 delivery fees and lower service fees on eligible DoorDash orders.",
+      "how": "Sign up in the DoorDash app and verify your enrollment.",
+      "url": "https://help.doordash.com/en-us/consumers/article/dashpass-for-students",
+      "color": "#FF3008"
+    },
+    {
+      "id": "uber-one-students",
+      "brand": "Uber One for Students",
+      "category": "food",
+      "headline": "4 weeks free, then $4.99 a month",
+      "details": "$0 delivery fees on eligible orders, 5% back on rides, plus weekly student perks like free Starbucks Mondays on $15+ orders.",
+      "how": "Verify you're a student (18+) in the Uber or Uber Eats app.",
+      "url": "https://www.uber.com/uber-one/student",
+      "color": "#06C167"
+    },
+    {
+      "id": "insomnia-cookies",
+      "brand": "Insomnia Cookies",
+      "category": "desserts",
+      "headline": "Free delivery on $15+",
+      "details": "Warm cookies delivered late at night. Use code REALCOOKIE at checkout through Student Beans.",
+      "how": "Verify with a free Student Beans account.",
+      "url": "https://www.studentbeans.com/student-discount/us/insomnia-cookies",
+      "color": "#2E3192"
+    },
+    {
+      "id": "openstax",
+      "brand": "OpenStax",
+      "category": "books",
+      "headline": "Free textbooks",
+      "details": "Peer-reviewed textbooks for intro courses like biology, chemistry, calculus and psychology. Check if your class uses one before you buy.",
+      "how": "No sign-up needed to read online.",
+      "url": "https://openstax.org/subjects",
+      "color": "#0D7A8A"
+    },
+    {
+      "id": "campus-bookstore",
+      "brand": "Your campus bookstore",
+      "category": "books",
+      "headline": "Rent, buy used or price-match",
+      "details": "Most campus stores offer rentals and used copies, and many match online prices. Compare before buying new.",
+      "how": "Bring your course list or class numbers.",
+      "url": "{bookstore}",
+      "color": "#7A1F2B"
+    },
+    {
+      "id": "library-reserves",
+      "brand": "Library course reserves",
+      "category": "books",
+      "headline": "Borrow required textbooks free",
+      "details": "Many professors put a copy of the required textbook on reserve at the campus library for short loans.",
+      "how": "Ask at the library desk or search the library catalog.",
+      "url": "{library}",
+      "color": "#3B5B92"
+    },
+    {
+      "id": "github-student-pack",
+      "brand": "GitHub Student Developer Pack",
+      "category": "tools",
+      "headline": "Free developer tools",
+      "details": "GitHub Pro, GitHub Copilot Student, JetBrains IDEs, cloud credits and more, free while you're a student.",
+      "how": "Apply with your school email or proof of enrollment.",
+      "url": "https://education.github.com/pack",
+      "color": "#24292F"
+    },
+    {
+      "id": "notion-education",
+      "brand": "Notion Education Plan",
+      "category": "tools",
+      "headline": "Free with your school email",
+      "details": "Notes, class planners and group projects in one workspace, with more features than the free plan.",
+      "how": "Make your school email your Notion login, then choose 'Get free education plan' in Settings.",
+      "url": "https://www.notion.com/en-us/help/notion-for-education",
+      "color": "#191919"
+    },
+    {
+      "id": "microsoft-365",
+      "brand": "Microsoft 365 for students",
+      "category": "tools",
+      "headline": "Often free through your school",
+      "details": "Word, Excel, PowerPoint and OneDrive. Many colleges include it with your student account.",
+      "how": "Check with your school email on Microsoft's education page.",
+      "url": "https://www.microsoft.com/en-us/education/products/office",
+      "color": "#D83B01"
+    },
+    {
+      "id": "adobe-students",
+      "brand": "Adobe Creative Cloud for students",
+      "category": "tools",
+      "headline": "Student pricing on Creative Cloud",
+      "details": "Photoshop, Illustrator, Premiere Pro, Acrobat and more at a student price.",
+      "how": "Verify with your school email at checkout.",
+      "url": "https://www.adobe.com/creativecloud/buy/students.html",
+      "color": "#EB1000"
+    },
+    {
+      "id": "apple-education",
+      "brand": "Apple Education Store",
+      "category": "shopping",
+      "headline": "Student pricing on Mac and iPad",
+      "details": "Education pricing all year, plus a back-to-school gift card offer most summers.",
+      "how": "Shop the Education Store; you may be asked to verify.",
+      "url": "https://www.apple.com/us-edu/store",
+      "color": "#555555"
+    },
+    {
+      "id": "spotify-student",
+      "brand": "Spotify Premium Student",
+      "category": "entertainment",
+      "headline": "$6.99 a month, Hulu included",
+      "details": "Ad-free music and Hulu (With Ads) in one plan. One month free if you haven't tried Premium.",
+      "how": "Verify through SheerID; re-verify each year.",
+      "url": "https://www.spotify.com/us/student/",
+      "color": "#1DB954"
+    },
+    {
+      "id": "youtube-premium-student",
+      "brand": "YouTube Premium Student",
+      "category": "entertainment",
+      "headline": "$8.99 a month",
+      "details": "Ad-free YouTube, background play and YouTube Music.",
+      "how": "Verify through SheerID.",
+      "url": "https://www.youtube.com/premium/student",
+      "color": "#FF0000"
+    },
+    {
+      "id": "student-beans",
+      "brand": "Student Beans",
+      "category": "shopping",
+      "headline": "Hundreds more student codes",
+      "details": "Free verified student discounts on clothes, food, tech and travel.",
+      "how": "Free account, verified once.",
+      "url": "https://www.studentbeans.com/us",
+      "color": "#00A699"
+    },
+    {
+      "id": "unidays",
+      "brand": "UNiDAYS",
+      "category": "shopping",
+      "headline": "Hundreds more student codes",
+      "details": "Another free app for verified student discounts at major brands.",
+      "how": "Free account, verified once.",
+      "url": "https://www.myunidays.com/US/en-US",
+      "color": "#1B1B1B"
+    }
+  ],
+  "campuses": {
+    "_example": [
+      {
+        "id": "example-local",
+        "brand": "Example Pizza Co.",
+        "category": "food",
+        "headline": "20% off with student ID",
+        "details": "Dine-in and pickup, Monday to Thursday.",
+        "how": "Show your student ID.",
+        "url": "https://example.com",
+        "ends": "2027-05-31",
+        "sponsored": true
+      }
+    ]
+  }
+}

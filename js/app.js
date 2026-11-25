@@ -57,7 +57,7 @@ const searchInput = $("#map-q");
 async function boot() {
   applyTheme(store.theme);
   view.innerHTML = `<div class="loading" role="status"><div class="spinner"></div><p>Loading campuses…</p></div>`;
-  const [{ campuses, isSample }] = await Promise.all([loadCampuses(config), loadSponsors()]);
+  const [{ campuses, isSample }] = await Promise.all([loadCampuses(config), loadSponsors(), loadDeals()]);
   state.campuses = campuses;
   state.isSample = isSample;
   const saved = campuses.find(c => c.name === store.campusName);
@@ -92,6 +92,15 @@ async function loadSponsors() {
     const json = await response.json();
     state.sponsors = json.campuses || {};
   } catch { /* no sponsors */ }
+}
+
+/** Deals of the Month (data/deals.json): national student discounts plus campus-only ones. */
+async function loadDeals() {
+  state.deals = null;
+  try {
+    const response = await fetch(config.dealsURL || "data/deals.json", { cache: "no-cache" });
+    if (response.ok) state.deals = await response.json();
+  } catch { /* no deals */ }
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -295,7 +304,7 @@ function render() {
 
   // The list the person came from (dashboard, buildings, classes) stays where it was:
   // beside the map on a wide screen, and one tap back on a phone.
-  const renderers = { dashboard: renderDashboard, campuses: renderCampuses, schedule: renderSchedule, import: renderImport, buildings: renderBuildings, welcome: renderWelcome, confirm: () => renderConfirm(route.arg) };
+  const renderers = { dashboard: renderDashboard, deals: renderDeals, campuses: renderCampuses, schedule: renderSchedule, import: renderImport, buildings: renderBuildings, welcome: renderWelcome, confirm: () => renderConfirm(route.arg) };
   trackPage(route.name === "confirm" ? state.campuses.find(c => c.slug === route.arg) : state.campus,
     route.name === "map" ? (route.params.get("cat") ? `map/${route.params.get("cat")}` : route.params.get("q") ? "map/search" : "map") : route.name);
   const cameFrom = state.lastRouteName;
@@ -512,6 +521,8 @@ function renderDashboard() {
     ${state.isSample ? `<p class="notice">Preview data: the live campus list couldn't be reached, so two sample campuses are showing.</p>` : ""}
 
     ${installCard()}
+
+    ${dealsOfMonthCard()}
 
     ${dealsSection(campus)}
 
@@ -1026,9 +1037,10 @@ function renderSchedule() {
           <div class="row class-row row-${group.items.length === 1 ? "only" : i === 0 ? "first" : i === group.items.length - 1 ? "last" : "middle"}">
             <span class="class-time">${formatTime(c.time)}</span>
             <a class="class-main" href="${c.building ? `#/map?q=${encodeURIComponent(c.building)}&exact=1` : "#/schedule"}">
-              <span class="row-title">${h(c.name)}</span>
-              <span class="muted small">${c.building ? `${icon("walk")} ${h(c.building)}` : "No building yet"}</span>
+              <span class="row-title">${h(c.name)}${c.title ? ` <span class="class-title-text">${h(c.title)}</span>` : ""}</span>
+              <span class="muted small">${c.building ? `${icon("walk")} ${h(c.building)}${c.room ? ` · Room ${h(c.room)}` : ""}` : "No building yet"}</span>
             </a>
+            <button class="icon-btn subtle" data-action="edit-class" data-id="${h(c.id)}" aria-label="Edit ${h(c.name)}">${icon("pencil")}</button>
             <button class="icon-btn subtle" data-delete-class="${h(c.id)}" aria-label="Delete ${h(c.name)}">${icon("trash")}</button>
           </div>`).join("")}</div>
       </section>`).join("") : `
@@ -1165,7 +1177,8 @@ function saveImport() {
   if (!draft) return;
   const add = draft.classes.filter(c => c.include && c.name.trim() && c.days.length && c.time).map(c => ({
     id: `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
-    name: c.name.trim(), building: c.building.trim(), days: [...c.days].sort(), time: c.time
+    name: c.name.trim(), title: (c.title || "").trim(), building: c.building.trim(), room: roomFrom(c.location, c.building),
+    days: [...c.days].sort(), time: c.time
   }));
   if (!add.length) return;
   store.classes = [...store.classes, ...add];
@@ -1217,13 +1230,33 @@ document.addEventListener("drop", event => {
   if (file) file.text().then(text => readSchedule(text, file.name));
 });
 
-function openClassDialog() {
+/** The room number at the end of a location ("McCool Hall 215" → "215"), when there is one. */
+function roomFrom(location, building) {
+  if (!location) return "";
+  const m = /(?:\b(?:room|rm)\.?\s*)?([A-Z]?\d{1,4}[A-Z]?)\s*$/i.exec(String(location).trim());
+  return m && m[1] && !String(building || "").includes(m[1]) ? m[1].toUpperCase() : "";
+}
+
+/** Opens the class form, empty to add a class or filled in to edit one. */
+function openClassDialog(cls = null) {
   const dialog = $("#class-dialog");
   const form = dialog.querySelector("form");
   form.reset();
+  form.querySelector(".form-error").hidden = true;
   $("#building-options").innerHTML = state.campus.buildings.map(b => `<option value="${h(b)}">`).join("");
+  dialog.dataset.editing = cls?.id || "";
+  $("#class-title").textContent = cls ? "Edit class" : "Add a class";
+  $("#class-save").textContent = cls ? "Save changes" : "Save class";
+  if (cls) {
+    form.elements.name.value = cls.name || "";
+    form.elements.title.value = cls.title || "";
+    form.elements.building.value = cls.building || "";
+    form.elements.room.value = cls.room || "";
+    form.elements.time.value = cls.time || "";
+    form.querySelectorAll('input[name="days"]').forEach(box => { box.checked = cls.days.includes(Number(box.value)); });
+  }
   dialog.showModal();
-  form.elements.name.focus();
+  if (!cls) form.elements.name.focus();
 }
 
 function saveClass(form) {
@@ -1237,10 +1270,84 @@ function saveClass(form) {
     error.hidden = false;
     return false;
   }
-  const entry = { id: crypto.randomUUID?.() ?? String(Date.now()), name, building: String(data.get("building") || "").trim(), days, time };
-  store.classes = [...store.classes, entry];
+  const editing = $("#class-dialog").dataset.editing;
+  const entry = {
+    id: editing || (crypto.randomUUID?.() ?? String(Date.now())), name,
+    title: String(data.get("title") || "").trim(), building: String(data.get("building") || "").trim(),
+    room: String(data.get("room") || "").trim(), days: days.sort(), time
+  };
+  const existing = editing && store.classes.find(c => c.id === editing);
+  store.classes = existing ? store.classes.map(c => (c.id === editing ? { ...c, ...entry } : c)) : [...store.classes, entry];
+  if (existing) trackEvent("class-edit", state.campus.name);
   error.hidden = true;
   return true;
+}
+
+// MARK: - Deals of the Month
+
+const DEAL_CATEGORIES = [
+  ["all", "All", "sparkle"], ["local", "Near campus", "pin"], ["food", "Food & delivery", "food"], ["desserts", "Desserts", "coffee"],
+  ["books", "Books & study", "book"], ["tools", "Digital tools", "portal"], ["shopping", "Shopping", "tag"], ["entertainment", "Entertainment", "play"]
+];
+
+/** National deals plus this campus's own, minus any that have ended. Links to the bookstore and library follow the campus. */
+function dealsForCampus(campus) {
+  const data = state.deals;
+  if (!data) return [];
+  const live = d => d && d.brand && d.url && (!d.ends || d.ends >= today());
+  const fillURL = url => url === "{bookstore}" ? (campus.links.bookstore || "#/map?cat=books")
+    : url === "{library}" ? "#/map?cat=library" : url;
+  const local = (data.campuses?.[campus.name] || []).filter(live).map(d => ({ ...d, local: true }));
+  const sponsors = sponsorsFor(campus).filter(s => s.offer).map((s, i) => ({
+    id: `sponsor-${i}`, brand: s.name, category: "local", headline: s.offer, details: s.address || "", url: s.url || "", sponsored: true, local: true, sponsorIndex: i
+  }));
+  return [...sponsors, ...local, ...(data.deals || []).filter(live)].map(d => ({ ...d, url: fillURL(d.url) }));
+}
+
+function dealsOfMonthCard() {
+  const deals = state.campus && dealsForCampus(state.campus);
+  if (!deals?.length) return "";
+  return section("", `<a class="card glass deals-card" href="#/deals">
+    <span class="row-icon gold-icon">${icon("tag")}</span>
+    <span><span class="card-title">Deals of the Month</span><span class="muted">${deals.length} student discounts${state.deals.month ? ` for ${h(state.deals.month)}` : ""}</span></span>
+    ${icon("chevronRight", "row-chevron")}</a>`);
+}
+
+const initialsOf = name => name.replace(/[^A-Za-z0-9 ]/g, "").split(/\s+/).filter(w => w && !/^(for|the|your|of|and)$/i.test(w)).slice(0, 2).map(w => w[0].toUpperCase()).join("");
+
+function renderDeals() {
+  const campus = state.campus;
+  const deals = dealsForCampus(campus);
+  const filter = state.dealFilter || "all";
+  const counts = Object.fromEntries(DEAL_CATEGORIES.map(([key]) => [key, key === "all" ? deals.length : deals.filter(d => (key === "local" ? d.local : d.category === key)).length]));
+  const shown = filter === "all" ? deals : deals.filter(d => (filter === "local" ? d.local : d.category === filter));
+  const checked = state.deals?.checked ? new Date(`${state.deals.checked}T12:00:00`).toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" }) : "";
+  const card = d => {
+    const internal = d.url.startsWith("#");
+    const link = d.url ? `<a class="btn ${d.local ? "btn-gold" : "btn-glass"} btn-small deal-go" href="${h(d.url)}" ${internal ? "" : `target="_blank" rel="noopener${d.sponsored ? " sponsored" : ""}"`} data-deal-link="${h(d.id)}">${d.sponsorIndex != null ? "Open" : internal ? "Find it" : "Get deal"} ${icon("chevronRight")}</a>` : "";
+    return `<article class="deal-card glass" data-category="${h(d.category)}">
+      <div class="deal-top">
+        <span class="deal-mark" style="--mark:${h(/^#[0-9a-f]{6}$/i.test(d.color || "") ? d.color : "var(--accent)")}" aria-hidden="true">${h(initialsOf(d.brand))}</span>
+        <div class="deal-names"><p class="deal-brand">${h(d.brand)}${d.sponsored ? ` <span class="sponsored-tag">Sponsored</span>` : ""}</p><p class="deal-headline">${h(d.headline)}</p></div>
+      </div>
+      ${d.details ? `<p class="deal-details">${h(d.details)}</p>` : ""}
+      <div class="deal-foot">${d.how ? `<p class="muted small deal-how">${icon("student")} ${h(d.how)}</p>` : "<span></span>"}${d.sponsorIndex != null ? `<button class="btn btn-gold btn-small deal-go" data-deal="${d.sponsorIndex}">On the map ${icon("chevronRight")}</button>` : link}</div>
+    </article>`;
+  };
+  view.innerHTML = `
+    <header class="page-header">
+      <a class="icon-btn" href="#/" aria-label="Back">${icon("chevronLeft")}</a>
+      <div><p class="eyebrow accent">${h(campus.name)}</p><h1 class="page-title">Deals of the Month</h1></div>
+    </header>
+    <p class="deals-intro">${state.deals?.month ? `<strong>${h(state.deals.month)}.</strong> ` : ""}Student discounts on food, books, tools and fun, from national brands and spots near campus.</p>
+    <div class="chips deal-chips" role="tablist" aria-label="Deal categories">
+      ${DEAL_CATEGORIES.filter(([key]) => counts[key] || key === "all").map(([key, label, ic]) => `<button class="chip ${filter === key ? "is-active" : ""}" role="tab" aria-selected="${filter === key}" data-deal-filter="${key}">${icon(ic)}${label}</button>`).join("")}
+    </div>
+    ${shown.length ? `<div class="deal-grid">${shown.map(card).join("")}</div>` : `<div class="empty card glass"><p class="card-title">No deals here yet</p><p class="muted">Check back next month, or pick another category.</p></div>`}
+    ${!deals.some(d => d.local) ? `<a class="card glass deals-local-cta" href="${h(config.advertiseURL || "advertise.html")}" target="_blank" rel="noopener"><span class="row-icon">${icon("pin")}</span><span><span class="card-title">Own a business near ${h(campus.name)}?</span><span class="muted">Offer a student deal on GradWay.</span></span>${icon("chevronRight", "row-chevron")}</a>` : ""}
+    <p class="muted small center deals-fine">${checked ? `Checked ${h(checked)}. ` : ""}Prices and terms change, and most offers need student verification. Confirm on the brand's site before you buy. GradWay isn't affiliated with these brands unless a deal is marked Sponsored.</p>
+  `;
+  trackEvent("deals-view", campus.name, filter);
 }
 
 // MARK: - Buildings
@@ -1842,6 +1949,7 @@ function travelToggle() {
 }
 
 function setTravelMode(mode) {
+  const changed = travelMode() !== mode;
   store.travelMode = mode;
   const stepFree = document.querySelector(".step-free");
   if (stepFree) stepFree.hidden = mode !== "walk";
@@ -1857,7 +1965,8 @@ function setTravelMode(mode) {
   if (alt) alt.innerHTML = altMapsLinks(item);
   const routeMe = document.querySelector(".route-me");
   if (routeMe) routeMe.lastChild.textContent = ` ${routeButtonLabel()}`;
-  if (nearCampus()) requestRoute(item);
+  // Re-route whenever a route is (or was being) shown for this place, near campus or not.
+  if (changed && state.userPosition && (nearCampus() || state.routedItem === item)) requestRoute(item);
 }
 
 function selectItem(item, { zoomMeters } = {}) {
@@ -2048,6 +2157,7 @@ function previewRoute() {
 function cancelRoute() {
   state.routeAbort?.abort();
   state.routeAbort = null;
+  sheet.classList.remove("is-routing");
   state.map?.clearRoute();
 }
 
@@ -2093,6 +2203,13 @@ async function requestRoute(item) {
 
   const controller = new AbortController();
   state.routeAbort = controller;
+  state.routedItem = item;
+  // Fit the route to the full card, then tuck the card away so the map shows while it loads.
+  const padding = sheetPadding();
+  // A short delay keeps instant (cached) routes from making the card flicker.
+  const tuck = setTimeout(() => { collapseSheet(); sheet.classList.add("is-routing"); }, 150);
+  controller.signal.addEventListener("abort", () => clearTimeout(tuck));
+  const finish = () => { clearTimeout(tuck); sheet.classList.remove("is-routing"); expandSheet(); };
   trackEvent("route", mode);
   setRouteLine(`Finding a ${stepFree ? "step-free " : ""}${{ drive: "driving", bike: "biking", walk: "walking" }[mode]} route…`, mode);
   try {
@@ -2101,7 +2218,8 @@ async function requestRoute(item) {
     const verb = { drive: "drive", bike: "by bike", walk: "walk" }[mode];
     const prefix = tooFarToWalk ? `Too far to ${chosen === "bike" ? "bike" : "walk"} · ` : stepFree ? (route.stepFree ? "Step-free · " : "No step-free route found · standard route · ") : "";
     setRouteLine(`${prefix}${formatDuration(route.seconds)} ${verb} · ${formatDistance(route.meters)} · arrive ${arrivalTime(route.seconds)}`, mode);
-    state.map?.showRoute(route.coordinates, { mode, padding: sheetPadding() });
+    state.map?.showRoute(route.coordinates, { mode, padding });
+    finish();
     setPreviewButton(route.meters <= PREVIEW_MAX_METERS && route.coordinates.length > 1);
     record("route", {
       mode, meters: Math.round(route.meters / 50) * 50, minutes: Math.round(route.seconds / 60),
@@ -2116,7 +2234,8 @@ async function requestRoute(item) {
       : mode === "bike" ? `about ${Math.max(1, Math.round(straight * 1.3 / 4.5 / 60))} min by bike`
       : `about ${walkMinutes(straight)} min walk`;
     setRouteLine(`Route servers didn't answer · ${formatDistance(straight)} straight line, ${estimate}`, mode);
-    state.map?.showRoute([[from.lng, from.lat], [item.lng, item.lat]], { mode, straight: true, padding: sheetPadding() });
+    state.map?.showRoute([[from.lng, from.lat], [item.lng, item.lat]], { mode, straight: true, padding });
+    finish();
   }
 }
 
@@ -2198,6 +2317,10 @@ function onClick(event) {
     document.getElementById(`state-${jumpTo.dataset.stateJump}`)?.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
     return;
   }
+  const dealLink = event.target.closest("[data-deal-link]");
+  if (dealLink) trackEvent("deal-click", state.campus?.name, dealLink.dataset.dealLink);
+  const dealFilter = event.target.closest("[data-deal-filter]");
+  if (dealFilter) { state.dealFilter = dealFilter.dataset.dealFilter; renderDeals(); return; }
   const target = event.target.closest("[data-action], [data-campus], [data-confirm], [data-result], [data-delete-class], [data-mode], [data-close-dialog], [data-travel], [data-look], [data-deal], [data-sponsor-link], [data-streetview], [data-lookup]");
   if (!target) return;
   if (target.dataset.lookup) { trackEvent("hours-lookup", state.campus?.name, state.selected?.name); return; }
@@ -2247,6 +2370,7 @@ function onClick(event) {
     case "safety": openSafetyDialog(); trackEvent("safety-open", state.campus?.name); break;
     case "share-location": shareLocation(); trackEvent("share-location", state.campus?.name); break;
     case "add-class": openClassDialog(); break;
+    case "edit-class": openClassDialog(store.classes.find(c => c.id === target.dataset.id)); break;
     case "import-read": {
       const text = $("#import-text")?.value || "";
       if (text.trim()) readSchedule(text, "your pasted schedule");

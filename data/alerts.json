@@ -1,16 +1,5 @@
 {
   "_how_to": "Edit with alerts-editor.html. Each alert: id, text (up to 140 characters), type (info, deadline, food, event, weather, safety), starts and ends in campus time (YYYY-MM-DDTHH:MM), optional link and linkLabel. Up to 3 show at once, safety first. \"all\" shows at every campus.",
-  "all": [
-    {
-      "id": "all-mwvnf25z",
-      "text": "Happy holidays from Gradway! ✨",
-      "type": "event",
-      "starts": "2026-11-24T22:52",
-      "ends": "2026-11-27T23:59"
-    }
-  ],
-  "campuses": {
-    "Mississippi State University": [],
-    "Louisiana State University": []
-  }
+  "all": [],
+  "campuses": {}
 }

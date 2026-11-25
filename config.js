@@ -53,6 +53,8 @@ window.GRADWAY_CONFIG = {
 
   // Sponsored places shown under "Local deals" and at the top of matching categories.
   sponsorsURL: "data/sponsors.json",
+  // Deals of the Month: national student discounts and campus-only ones. Update monthly.
+  dealsURL: "data/deals.json",
   // Where "Advertise on GradWay" in the footer goes: the sign-up page in this folder. null hides it.
   advertiseURL: "advertise.html",
 

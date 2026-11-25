@@ -151,6 +151,21 @@ view; Download CSV and Save as PDF make a report to send.
   places on a 150 m grid; search text only when nothing was found). Small groups (under 10) are hidden.
   The Privacy Policy's "Campus insights" section describes it.
 
+## Deals of the Month (data/deals.json)
+
+The Deals view (dashboard → Deals of the Month, or `#/deals`) reads `data/deals.json`:
+
+1. Once a month, open every deal's link and check the price and terms still match.
+2. Update `month` and `checked` at the top, and fix or remove any deal that changed.
+3. `category` is one of food, desserts, books, tools, shopping, entertainment. `ends` (YYYY-MM-DD)
+   hides a deal after that date. `"sponsored": true` labels a paid placement.
+4. Campus-only deals go under `campuses`, keyed by the campus Name exactly as in campus.json.
+   Paid map placements stay in `data/sponsors.json`; any with an `offer` also appear under "Near campus".
+5. `{bookstore}` as a link opens the campus bookstore from campus.json (or the map's bookstore search);
+   `{library}` opens the map's library search.
+
+Brands appear as initials in a colored square, never their logos.
+
 ## Campus alerts (alerts-editor.html)
 
 1. Make a GitHub fine-grained token once: Repository access = only this site's repository;
