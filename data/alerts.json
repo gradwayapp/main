@@ -2,15 +2,7 @@
   "_how_to": "Edit with alerts-editor.html. Each alert: id, text (up to 140 characters), type (info, deadline, food, event, weather, safety), starts and ends in campus time (YYYY-MM-DDTHH:MM), optional link and linkLabel. Up to 3 show at once, safety first. \"all\" shows at every campus.",
   "all": [],
   "campuses": {
-    "Mississippi State University": [
-      {
-        "id": "mississippi-state-univer-mwvmqsyj",
-        "text": "Hail State! 🔔",
-        "type": "info",
-        "starts": "2026-11-24T22:34",
-        "ends": "2026-11-24T23:59"
-      }
-    ],
+    "Mississippi State University": [],
     "Louisiana State University": []
   }
 }
