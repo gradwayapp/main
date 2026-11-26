@@ -1512,3 +1512,47 @@ body:not(.no-map) .deal-grid { grid-template-columns: 1fr; }
 .deals-local-cta > span:nth-child(2) { flex: 1; min-width: 0; }
 .deals-local-cta .muted { display: block; font-size: 14px; }
 .deals-fine { margin-top: 16px; line-height: 1.5; }
+
+/* MARK: Light mode fixes (Nov 25 testing) */
+/* The welcome tour and the advertiser's phone preview are dark by design, so they keep the dark text colors in light mode. */
+html[data-theme="light"] .tour,
+html[data-theme="light"] .ad-phone {
+  color-scheme: dark;
+  --surface: #141b2e;
+  --glass: rgb(255 255 255 / 0.07);
+  --glass-strong: rgb(255 255 255 / 0.11);
+  --line: rgb(255 255 255 / 0.11);
+  --paper: #f6f1e7;
+  --muted: rgb(246 241 231 / 0.62);
+  --faint: rgb(246 241 231 / 0.42);
+  --gold: #e4b463;
+  --gold-deep: #c98a2c;
+  --sky: #4fb3ff;
+  --bg: #0d1322;
+  color: #f6f1e7;
+}
+html[data-theme="light"] .ad-phone .chip,
+html[data-theme="light"] .ad-phone .row { background: rgb(255 255 255 / 0.07); border-color: rgb(255 255 255 / 0.11); color: #f6f1e7; box-shadow: none; }
+html[data-theme="light"] .ad-phone .chip .icon { color: var(--gold); }
+html[data-theme="light"] .tour .fake-card,
+html[data-theme="light"] .tour .fake-eta,
+html[data-theme="light"] .tour .fake-sheet,
+html[data-theme="light"] .tour .fake-alert { color: #f6f1e7; }
+
+/* App Store and news cards: a light wash of the campus color instead of a dark, muddy gradient */
+html[data-theme="light"] .install {
+  background: linear-gradient(135deg, rgb(var(--campus-rgb) / 0.10), #fff 70%);
+  border-color: rgb(168 115 26 / 0.35);
+}
+html[data-theme="light"] .install-icon { background: rgb(228 180 99 / 0.22); color: #8a5d10; }
+html[data-theme="light"] .news-card {
+  background:
+    linear-gradient(140deg, rgb(var(--campus-rgb) / 0.16), rgb(var(--campus-rgb) / 0.05) 60%, #fff),
+    repeating-linear-gradient(-45deg, rgb(27 34 56 / 0.025) 0 14px, transparent 14px 28px);
+  border-color: var(--line);
+}
+
+/* Short chip rows wrap instead of being cut off (Follow links) */
+.chips.wrap { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; }
+/* Long scrolling chip rows fade at the edge, a hint that there is more to the side */
+.chips.scroller { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }

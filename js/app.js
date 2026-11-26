@@ -509,7 +509,7 @@ function renderDashboard() {
       ${icon("search")}
       <input name="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Search buildings, ATMs, coffee…" aria-label="Search ${h(campus.name)}">
     </form>
-    <div class="chips" role="list">
+    <div class="chips scroller" role="list">
       ${QUICK_CATEGORIES.map(key => `<a class="chip" role="listitem" href="#/map?cat=${key}">${icon(CATEGORIES[key].icon)}${CATEGORIES[key].label}</a>`).join("")}
     </div>
 
@@ -543,7 +543,7 @@ function renderDashboard() {
       <a class="row row-last" href="${h(config.feedbackURL)}" target="_blank" rel="noopener"><span class="row-icon">${icon("feedback")}</span><span class="row-text"><span class="row-title">Tell us what to improve</span><span class="row-sub">Send feedback to the GradWay team</span></span>${icon("chevronRight", "row-chevron")}</a>
     </div>`)}
 
-    ${section("Follow", socials.length ? `<div class="chips">${socials.map(([title, iconName, url]) => `<a class="chip" href="${h(url)}" target="_blank" rel="noopener">${icon(iconName)}Follow on ${title}</a>`).join("")}</div>` : "")}
+    ${section("Follow", socials.length ? `<div class="chips wrap">${socials.map(([title, iconName, url]) => `<a class="chip" href="${h(url)}" target="_blank" rel="noopener">${icon(iconName)}Follow on ${title}</a>`).join("")}</div>` : "")}
 
     ${footer()}
   `;

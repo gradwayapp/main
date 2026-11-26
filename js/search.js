@@ -490,7 +490,7 @@ export function prefetchCampus(config, campusRegion) {
       const tags = el.tags || {};
       if (tags.building && tags.name) {
         const lat = el.lat ?? el.center?.lat, lng = el.lon ?? el.center?.lon;
-        if (Number.isFinite(lat) && Number.isFinite(lng)) byKey.landmarks.push({ name: tags.name, lat, lng });
+        if (Number.isFinite(lat) && Number.isFinite(lng)) byKey.landmarks.push({ name: tags.name, lat, lng, kind: "Building", osm: { type: el.type, id: el.id }, id: `${el.type}${el.id}` });
       }
       for (const [k, label, groupTags] of groups) {
         const hit = groupTags.find(t => matches(tags, t));
@@ -558,9 +558,15 @@ export async function runSearch(config, { query, categoryKey, campusRegion, isEx
     return { items: list, onCampus: list.filter(item => isInside(item, campusRegion)).length, radiusMiles };
   };
 
+  // Buildings and places already saved on this device answer name searches instantly and offline.
+  const prefetched = cacheGet(`poi3.${campusKey(campusRegion)}`, PREFETCH_DAYS * 86_400_000);
+  const local = query ? localNameMatches(prefetched, query) : [];
+
   // A class's building: campus only, so a same-named building elsewhere never wins.
   if (isExactLookup) {
-    return finish(await photonSearch(config, { query, region: campusRegion, signal }), null);
+    const onCampus = local.filter(item => isInside(item, campusRegion));
+    if (onCampus.length) return finish(onCampus, null);
+    return finish(await nameSearch(config, { query, region: campusRegion, signal }), null);
   }
 
   if (category) {
@@ -569,7 +575,6 @@ export async function runSearch(config, { query, categoryKey, campusRegion, isEx
     if (saved) return saved;
 
     // Campus results from the weekly prefetch, if it has already run on this device.
-    const prefetched = cacheGet(`poi3.${campusKey(campusRegion)}`, PREFETCH_DAYS * 86_400_000);
     const campusItems = (prefetched?.[categoryKey] || []).filter(item => isInside(item, campusRegion));
     if (campusItems.length) onPartial?.(finish(campusItems));
 
@@ -585,12 +590,61 @@ export async function runSearch(config, { query, categoryKey, campusRegion, isEx
     return result;
   }
 
-  const key = `q6.${query.toLowerCase()}.${campusKey(campusRegion)}`;
+  const key = `q7.${query.toLowerCase()}.${campusKey(campusRegion)}`;
   const saved = cacheGet(key, 3_600_000);
   if (saved) return saved;
-  const result = finish(await photonSearch(config, { query, region: nearby, signal }));
-  if (result.items.length) cacheSet(key, result);
+  if (local.length) onPartial?.(finish(local));
+  let found = [];
+  try {
+    found = await nameSearch(config, { query, region: nearby, campusRegion, signal });
+  } catch (error) {
+    // The search services are busy or down: what's saved on this device is still an answer.
+    if (signal?.aborted || !local.length) throw error;
+    console.warn("GradWay: name search failed; showing saved campus results.", error?.message || error);
+    return finish(local);
+  }
+  const result = finish([...local, ...found]);
+  if (found.length) cacheSet(key, result);
   return result;
+}
+
+const normName = s => String(s || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+
+/** Saved campus buildings and places whose name contains every word typed ("lee hall", "crump"). */
+function localNameMatches(prefetched, query) {
+  if (!prefetched) return [];
+  const words = normName(query).split(" ").filter(w => w.length > 1 || /\d/.test(w));
+  if (!words.length) return [];
+  const pool = Object.values(prefetched).flat().filter(item => item && item.name);
+  // Places with full OpenStreetMap details first, so hours and phone can load.
+  const hits = pool.filter(item => { const n = normName(item.name); return words.every(w => n.includes(w)); })
+    .sort((a, b) => (a.osm ? 0 : 1) - (b.osm ? 0 : 1));
+  return dedupe(hits.map(item => ({ id: item.id || `local:${item.name}:${item.lat.toFixed(5)}`, kind: item.kind || "Building", ...item })));
+}
+
+const regexEscape = s => s.replace(/[.*+?^${}()|[\]\\"]/g, "\\$&");
+
+/**
+ * Finds places by name. Photon (OpenStreetMap search) is quick but is a free shared
+ * service that can be busy, so it gets one retry, and if it hasn't answered in
+ * 2.5 seconds an OpenStreetMap name lookup on campus runs alongside it.
+ */
+async function nameSearch(config, { query, region, campusRegion = region, signal }) {
+  const photon = photonSearch(config, { query, region, signal }).catch(async error => {
+    if (signal?.aborted) throw error;
+    await delay(700);
+    return photonSearch(config, { query, region, signal });
+  });
+  const quick = await Promise.race([photon.then(r => ({ r }), () => null), delay(2500).then(() => null)]);
+  if (quick?.r.length) return quick.r;
+  const words = normName(query).split(" ").filter(Boolean);
+  if (!words.length) return photon;
+  const [w, s, e, n] = bboxOf(campusRegion);
+  const pattern = words.map(regexEscape).join(".*");
+  const body = `[out:json][timeout:10];nwr["name"~"${pattern}",i](${s.toFixed(6)},${w.toFixed(6)},${n.toFixed(6)},${e.toFixed(6)});out center 40;`;
+  const overpass = overpassQuery(config, body, signal, { timeoutMs: 9000, hedgeMs: 2000 })
+    .then(json => (json.elements || []).map(el => elementToPlace(el, kindFor(el.tags || {}, "Place"))).filter(p => p.name && Number.isFinite(p.lat) && Number.isFinite(p.lng)));
+  return firstNonEmpty([photon, overpass]);
 }
 
 export function sortByDistance(items, reference) {
