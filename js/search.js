@@ -58,7 +58,17 @@ export const CATEGORIES = {
   asian:    { label: "Asian",    icon: "food",     query: "asian",    tags: food("asian|chinese|japanese|sushi|thai|vietnamese|korean|ramen|indian|pho") },
   bbq:      { label: "Barbecue", icon: "food",     query: "bbq",      tags: food("bbq|barbecue") },
   breakfast:{ label: "Breakfast", icon: "food",    query: "breakfast", tags: food("breakfast|pancake|waffle|bagel|donut", [["name", "~waffle house|ihop|biscuit|first watch|denny"]]) },
-  drinks:   { label: "Smoothies and tea", icon: "coffee", query: "smoothie", tags: food("bubble_tea|juice|smoothie|tea", [["name", "~smoothie|boba|tea|juice"]]) }
+  drinks:   { label: "Smoothies and tea", icon: "coffee", query: "smoothie", tags: food("bubble_tea|juice|smoothie|tea", [["name", "~smoothie|boba|tea|juice"]]) },
+  // Found when someone describes a problem ("flat tire", "locked out", "toothache"):
+  car:      { label: "Tire and auto repair", icon: "car", query: "car repair", tags: [["shop", "tyres"], ["shop", "car_repair"], ["shop", "car_parts"], ["craft", "car_repair"]] },
+  locksmith:{ label: "Locksmiths", icon: "building", query: "locksmith", tags: [["shop", "locksmith"], ["craft", "locksmith"], ["craft", "key_cutter"]] },
+  devices:  { label: "Phone and computer repair", icon: "building", query: "phone repair", tags: [["shop", "mobile_phone"], ["craft", "electronics_repair"], ["shop", "computer"], ["shop", "electronics"], ["service:electronics:repair", "yes"]] },
+  hair:     { label: "Barbers and salons", icon: "building", query: "hair salon", tags: [["shop", "hairdresser"], ["shop", "beauty"], ["shop", "barber"]] },
+  dentist:  { label: "Dentists", icon: "health", query: "dentist", tags: [["amenity", "dentist"], ["healthcare", "dentist"]] },
+  vet:      { label: "Vets", icon: "health", query: "veterinary", tags: [["amenity", "veterinary"]] },
+  tailor:   { label: "Tailors and shoe repair", icon: "building", query: "tailor", tags: [["shop", "tailor"], ["craft", "tailor"], ["shop", "shoe_repair"], ["craft", "shoemaker"]] },
+  hospital: { label: "Hospitals and emergency rooms", icon: "health", query: "hospital", tags: [["amenity", "hospital"], ["healthcare", "hospital"], ["emergency", "yes"]] },
+  supplies: { label: "School supplies", icon: "book", query: "office supplies", tags: [["shop", "stationery"], ["shop", "books"], ["shop", "variety_store"], ["shop", "department_store"]] }
 };
 
 /**
@@ -121,6 +131,68 @@ for (const [key, phrases] of Object.entries({
   water: ["water fountain", "drinking water", "bottle filler"], bus: ["bus stop"], bikes: ["bike rack", "bike rental", "bike share", "bike shop"],
   print: ["print shop"], post: ["post office"], laundry: ["dry cleaning", "dry cleaner"]
 })) for (const p of phrases) INTENT_PHRASES.set(p.split(" ").map(singular).join(" "), key);
+
+/**
+ * Problems people type, mapped to what helps: [category, reason shown to them, phrases].
+ * "headache" finds pharmacies, "flat tire" finds tire shops, "locked out" finds locksmiths.
+ */
+const NEEDS = [
+  ["pharmacy", "For quick relief, here are pharmacies", "headache, migraine, fever, cold, flu, cough, coughing, sore throat, sinus, allergy, allergies, sneezing, runny nose, stuffy nose, congestion, nausea, nauseous, upset stomach, stomach ache, stomachache, diarrhea, heartburn, cramps, period, tampons, pads, pain reliever, painkillers, advil, tylenol, ibuprofen, motrin, aleve, aspirin, cold medicine, flu medicine, sunburn, rash, bug bite, bee sting, band aid, bandaid, bandage, bandages, first aid, contacts, contact solution, condoms, plan b, pregnancy test, hangover"],
+  ["health", "Clinics and urgent care nearby", "sprain, sprained, sprained ankle, sprained wrist, twisted ankle, injury, injured, stitches, cut myself, ear infection, pink eye, strep, strep throat, covid test, flu shot, vaccine, vaccination, std test, sti test, physical exam, checkup, check up, sick, feel sick, feeling sick, doctors note, sick note"],
+  ["car", "Tire and auto repair nearby", "flat tire, flat tyre, flat, tire, tires, tyre, popped tire, low tire pressure, tire pressure, tire repair, car repair, car trouble, car broke down, broke down, car wont start, wont start, check engine, check engine light, engine light, oil change, dead battery, car battery, jump start, mechanic, brakes, brake pads, auto repair, auto parts, car parts, windshield, wiper blades, tow, towing"],
+  ["bikes", "Bike shops and repair stations", "flat bike tire, bike tire, bike repair, bike chain, broken bike, bike pump, bicycle repair"],
+  ["gas", "Gas stations nearby", "low on gas, out of gas, need gas, empty tank, gas light, fill up"],
+  ["locksmith", "Locksmiths nearby", "locked out, locked my keys, lost my keys, lost keys, lost my key, key copy, copy a key, spare key"],
+  ["devices", "Phone and computer repair nearby", "cracked screen, broken screen, broken phone, phone repair, screen repair, phone broke, laptop repair, broken laptop, computer repair, laptop broke, charger, phone charger, laptop charger, water damage"],
+  ["hair", "Barbers and salons nearby", "haircut, hair cut, barber, barbershop, barber shop, hair salon, salon, braids, lineup, line up, shave, nails, nail salon, manicure"],
+  ["dentist", "Dentists nearby", "toothache, tooth ache, tooth pain, chipped tooth, broken tooth, dentist, cavity"],
+  ["vet", "Vets nearby", "vet, veterinarian, sick dog, sick cat, sick pet"],
+  ["tailor", "Tailors and shoe repair nearby", "hem, hemming, alterations, broken zipper, zipper, tailor, shoe repair, broken heel"],
+  ["coffee", "Coffee to keep you going", "tired, sleepy, exhausted, need caffeine, caffeine, all nighter, wake me up"],
+  ["food", "Food nearby", "hungry, starving, famished, munchies, craving"],
+  ["drinks", "Drinks nearby", "thirsty"],
+  ["library", "Quiet places to study", "need to study, study session, cram, cramming, finals week"],
+  ["print", "Places to print", "print my paper, print an essay, print essay, print paper, print homework, need to print"],
+  ["post", "Places to ship and mail", "ship a package, send a package, mail a letter, return a package"],
+  ["grocery", "Stores for everyday things", "toilet paper, paper towels, shampoo, toothpaste, toiletries, dorm supplies, snacks for my dorm"],
+  ["supplies", "School supplies nearby", "school supplies, notebook, notebooks, pens, pencils, binder, binders, calculator, graphing calculator, scantron, blue book"],
+  ["atm", "ATMs and banks nearby", "need cash, need money, get cash"],
+  ["hotel", "Places to stay nearby", "parents visiting, family visiting, place for my parents"],
+];
+// Words that could mean an emergency: a call 911 card, plus hospitals.
+const EMERGENCY_PHRASES = ["chest pain", "heart attack", "cant breathe", "trouble breathing", "not breathing", "overdose", "overdosed", "heavy bleeding",
+  "bleeding badly", "seizure", "unconscious", "passed out", "fainted", "stroke", "allergic reaction", "anaphylaxis", "poisoned", "poisoning", "car accident",
+  "car crash", "emergency", "911", "assaulted", "assault", "attacked", "being followed", "someone following me", "on fire", "house fire", "theres a fire"];
+// Words about not feeling safe with yourself: a caring card with the 988 Lifeline, no map search.
+const CRISIS_PHRASES = ["suicide", "suicidal", "kill myself", "want to die", "end my life", "self harm", "hurt myself", "cutting myself", "dont want to live", "no reason to live"];
+// Words about stress and mental health: a support card plus campus health and nearby clinics.
+const SUPPORT_PHRASES = ["stressed", "stress", "anxious", "anxiety", "panic attack", "depressed", "depression", "lonely", "overwhelmed", "cant cope",
+  "mental health", "counseling", "counselor", "counselling", "therapist", "therapy", "someone to talk to", "homesick", "burnt out", "burned out"];
+
+const clean = q => String(q).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/['’]/g, "").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+// Longest phrases first: "flat bike tire" before "flat tire" before "tire".
+const NEED_PHRASES = NEEDS.flatMap(([key, reason, list]) => list.split(",").map(p => ({ phrase: clean(p), key, reason })).filter(n => n.phrase))
+  .sort((a, b) => b.phrase.length - a.phrase.length);
+const containsPhrase = (text, phrase) => (" " + text + " ").includes(" " + phrase + " ");
+
+/**
+ * What a search means. Returns { key, reason, alert } where key is a category (or null),
+ * reason is a short line to show, and alert is "emergency", "crisis", "support" or null.
+ */
+export function understand(query) {
+  const text = clean(query);
+  if (!text) return null;
+  if (CRISIS_PHRASES.some(p => containsPhrase(text, clean(p)))) return { key: null, reason: null, alert: "crisis" };
+  if (EMERGENCY_PHRASES.some(p => containsPhrase(text, clean(p)))) return { key: "hospital", reason: "Hospitals and emergency rooms nearby", alert: "emergency" };
+  if (SUPPORT_PHRASES.some(p => containsPhrase(text, clean(p)))) return { key: "health", reason: "Campus health and nearby clinics", alert: "support" };
+  const key = intentFor(query);
+  if (key) return { key, reason: null, alert: null };
+  // A problem described in a sentence: "I have a headache", "got a flat tire on the way".
+  const words = text.split(" ");
+  if (words.length > 10) return null;
+  const hit = NEED_PHRASES.find(n => containsPhrase(text, n.phrase));
+  return hit ? { key: hit.key, reason: hit.reason, alert: null } : null;
+}
 
 /** The category a typed search means, or null to search by name. */
 export function intentFor(query) {

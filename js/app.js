@@ -2,7 +2,7 @@
 // building directory and a campus map with the app's search behaviour.
 
 import { loadCampuses, resolveBuildings, regionAround, formatDistance, walkMinutes, distanceMeters } from "./data.js";
-import { runSearch, sortByDistance, bestNameMatch, prefetchCampus, placeDetails, intentFor, CATEGORIES, QUICK_CATEGORIES, DETAIL_LAYERS, SEARCH_RADIUS_MILES } from "./search.js";
+import { runSearch, sortByDistance, bestNameMatch, prefetchCampus, placeDetails, intentFor, understand, CATEGORIES, QUICK_CATEGORIES, DETAIL_LAYERS, SEARCH_RADIUS_MILES } from "./search.js";
 import { parseOpeningHours, openStatus, formatWeek } from "./hours.js";
 import { initAnalytics, trackPage, trackEvent as countEvent, totalVisits } from "./analytics.js";
 import { initInsights, record, recordVisit, cellOf } from "./insights-client.js";
@@ -1733,7 +1733,43 @@ function showStatus(text) {
   statusEl.hidden = !text;
 }
 
+const normalizeName = s => String(s || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+
+/** A card over the map for searches that sound urgent or hard: emergency, crisis or support. */
+function showNotice(kind) {
+  const el = $("#map-notice");
+  if (!el) return;
+  const NOTICES = {
+    emergency: { tone: "danger", title: "If this is an emergency, call 911 now.", body: "Hospitals and emergency rooms are on the map below.",
+      actions: `<a class="btn btn-danger btn-small" href="tel:911">${icon("phone")} Call 911</a><button class="btn btn-glass btn-small" type="button" data-action="safety">${icon("help")} Safety &amp; Emergency</button>` },
+    crisis: { tone: "care", title: "You don't have to go through this alone.", body: "Call or text 988 to reach the Suicide &amp; Crisis Lifeline, any time, free and confidential. If you're in danger right now, call 911.",
+      actions: `<a class="btn btn-gold btn-small" href="tel:988">${icon("phone")} Call 988</a><a class="btn btn-glass btn-small" href="sms:988">Text 988</a><a class="btn btn-glass btn-small" href="tel:911">Call 911</a>` },
+    support: { tone: "care", title: "It's okay to reach out.", body: "Your campus counseling center can help. You can also call or text 988 any time, day or night.",
+      actions: `<a class="btn btn-glass btn-small" href="tel:988">${icon("phone")} Call or text 988</a><button class="btn btn-glass btn-small" type="button" data-action="safety">${icon("help")} Get help fast</button>` },
+  };
+  const n = NOTICES[kind];
+  el.className = `map-notice glass is-${n.tone}`;
+  el.innerHTML = `<button class="icon-btn subtle notice-close" type="button" data-action="close-notice" aria-label="Close">${icon("close")}</button>
+    <p class="notice-title">${n.title}</p><p class="notice-body">${n.body}</p><div class="notice-actions">${n.actions}</div>`;
+  el.hidden = false;
+  placeNotice();
+  if (!placeNotice.watching && window.ResizeObserver && $("#map-status")) {
+    placeNotice.watching = true;
+    new ResizeObserver(placeNotice).observe($("#map-status"));
+  }
+}
+// Keep the notice just under the status pill, however many lines the status takes.
+function placeNotice() {
+  const el = $("#map-notice"), status = $("#map-status");
+  if (!el || el.hidden || !status) return;
+  const parent = el.offsetParent?.getBoundingClientRect().top || 0;
+  const r = status.getBoundingClientRect();
+  if (r.height) el.style.top = `${Math.round(r.bottom - parent + 10)}px`;
+}
+function hideNotice() { const el = $("#map-notice"); if (el) el.hidden = true; }
+
 function resetSearch() {
+  hideNotice();
   state.searchAbort?.abort();
   cancelRoute();
   state.results = [];
@@ -1755,11 +1791,23 @@ async function performSearch({ query, categoryKey, exact }) {
   resetSearch();
   // Typed words that mean a kind of place ("coffee", "fitness", "where can I eat") search
   // that category, the same as its quick button, instead of matching names.
-  let understood = null;
+  // Problems ("headache", "flat tire", "locked out") search what helps, with a line saying why.
+  // A campus building's own name always wins ("Physical Therapy Building", "Counseling Center").
+  let understood = null, meaning = null;
   if (!categoryKey && !exact && query) {
-    understood = intentFor(query);
-    if (understood) {
-      categoryKey = understood;
+    meaning = understand(query);
+    const q = normalizeName(query);
+    const isBuilding = q.length > 2 && campus.buildings.some(b => normalizeName(b).includes(q));
+    if (meaning?.alert === "crisis") {
+      showNotice("crisis");
+      showStatus("");
+      trackEvent("search-support", "crisis");
+      return;
+    }
+    if (meaning && isBuilding && !meaning.alert) meaning = null;
+    if (meaning?.alert) { showNotice(meaning.alert); trackEvent("search-support", meaning.alert); }
+    if (meaning?.key) {
+      understood = categoryKey = meaning.key;
       document.querySelectorAll("#map-chips .chip").forEach(chip => chip.classList.toggle("is-active", chip.dataset.cat === categoryKey));
       trackEvent("search-understood", categoryKey);
     }
@@ -1768,7 +1816,7 @@ async function performSearch({ query, categoryKey, exact }) {
   const controller = new AbortController();
   state.searchAbort = controller;
   if (categoryKey) trackEvent("category", categoryKey);
-  showStatus(understood ? `Looking for ${CATEGORIES[categoryKey].label.toLowerCase()}…` : "Searching…");
+  showStatus(meaning?.reason ? `${meaning.reason}…` : understood ? `Looking for ${CATEGORIES[categoryKey].label.toLowerCase()}…` : "Searching…");
 
   const present = (result, { partial = false } = {}) => {
     if (generation !== state.searchGeneration) return;
@@ -1798,11 +1846,11 @@ async function performSearch({ query, categoryKey, exact }) {
     if (nearbyCount > 0) state.map?.relaxLimits();
     const radius = result.radiusMiles || SEARCH_RADIUS_MILES;
     const status = partial ? `${onCampus} on campus · finding more nearby…`
-      : !sorted.length ? `Nothing found within ${radius} mi`
+      : !sorted.length ? (understood ? `No ${CATEGORIES[categoryKey].label.toLowerCase()} found within ${radius} mi` : `Nothing found within ${radius} mi`)
       : !onCampus && nearbyCount ? `Nothing on campus · ${nearbyCount} within ${radius} mi`
       : nearbyCount ? `${onCampus} on campus · ${nearbyCount} nearby`
       : `${desktop.matches ? "Zoom" : "Pinch"} to explore, or pick from the list`;
-    showStatus(status);
+    showStatus(meaning?.reason && sorted.length && !partial ? `${meaning.reason} · ${sorted.length} found` : status);
 
     if (keepSelection) { state.map?.select(state.selected); return; }
     if (!sorted.length) { state.map?.setRegion(regionAround(campus.region.center, 2500)); return; }
@@ -2367,6 +2415,7 @@ function onClick(event) {
 
   switch (target.dataset.action) {
     case "mode": openModeDialog(); break;
+    case "close-notice": hideNotice(); break;
     case "safety": openSafetyDialog(); trackEvent("safety-open", state.campus?.name); break;
     case "share-location": shareLocation(); trackEvent("share-location", state.campus?.name); break;
     case "add-class": openClassDialog(); break;

@@ -1556,3 +1556,21 @@ html[data-theme="light"] .news-card {
 .chips.wrap { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; }
 /* Long scrolling chip rows fade at the edge, a hint that there is more to the side */
 .chips.scroller { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
+
+/* A caring or urgent card over the map for searches like "chest pain" or "stressed" */
+.map-notice {
+  position: absolute; z-index: 4;
+  top: calc(var(--safe-top) + 160px); left: var(--gutter-l); right: var(--gutter-r); max-width: 440px;
+  margin: 0; padding: 14px 44px 14px 16px; border-radius: 18px;
+  background: rgb(16 22 38 / 0.94); border: 1px solid var(--line);
+}
+.map-notice.is-danger { border-color: rgb(214 69 69 / 0.7); background: linear-gradient(160deg, rgb(90 24 30 / 0.96), rgb(16 22 38 / 0.96)); }
+.map-notice.is-care { border-color: rgb(228 180 99 / 0.55); }
+.map-notice .notice-close { position: absolute; top: 8px; right: 8px; }
+.notice-title { margin: 0 0 4px; font-family: var(--display); font-weight: 700; font-size: 18px; line-height: 1.2; }
+.notice-body { margin: 0 0 10px; font-size: 14px; color: var(--muted); line-height: 1.45; }
+.notice-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.notice-actions .btn { display: inline-flex; align-items: center; gap: 6px; }
+.notice-actions .icon { width: 16px; height: 16px; }
+html[data-theme="light"] .map-notice { background: #fff; }
+html[data-theme="light"] .map-notice.is-danger { background: linear-gradient(160deg, #fdeaea, #fff); }

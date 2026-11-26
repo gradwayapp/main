@@ -2,7 +2,7 @@
 // online (like the iPhone app) and falls back to the last copy offline.
 // Map tiles and searches are never cached here.
 
-const VERSION = "gradway-web-v24";
+const VERSION = "gradway-web-v25";
 const SHELL = [
   "./",
   "index.html",
